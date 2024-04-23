@@ -1,0 +1,2 @@
+Copy this command and execute on your kafka broker. This gives the authorization for Klaw to create topics on your Kafka brokers.
+kafka-acls --authorizer-properties bootstrap.server=host:port --add --allow-principal User:'*' --operation All --allow-host hostname_ip --cluster Cluster:kafka-cluster --topic "*"

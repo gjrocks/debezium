@@ -1,0 +1,121 @@
+volumes:
+  #kraft-ct0: {}
+  #kraft-ct1: {}
+  kraft-bk1: {}
+  #kraft-bk2: {}
+  klaw_data:
+    driver: local
+ 
+services:
+
+  broker-1:
+    image: confluentinc/cp-kafka:${VERSION}
+    hostname: broker-1
+    container_name: kraft-broker-1
+    stop_grace_period: 60s
+    healthcheck:
+      test: nc -z localhost 9092 || exit 1
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    #depends_on:
+     # controller-0:
+      #  condition: service_healthy
+      #controller-1:
+       # condition: service_healthy
+    ports:
+      - '19092:19092'
+      
+      - '17071:7071'
+    volumes:
+      - kraft-bk1:/var/lib/kafka/data
+      - ./jmx_prometheus:/opt/jmx_prometheus
+      - ./secrets:/etc/kafka/secrets
+      - ./broker.sh:/tmp/broker.sh
+      - ./config/:/opt/kafka/config/  
+      
+    command: "bash -c '/tmp/broker.sh && /etc/confluent/docker/run'"
+    environment:
+      KAFKA_NODE_ID: 10
+      
+      KAFKA_SECURITY_INTER_BROKER_LISTENER_NAME: SSL
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:SASL_PLAINTEXT,CONTROLLER:SASL_PLAINTEXT,SSL:SASL_SSL
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker-1:9092,SSL://localhost:19092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+      KAFKA_NUM_PARTITIONS: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 500
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_METRIC_REPORTERS:
+      KAFKA_OPTS: -javaagent:/opt/jmx_prometheus/jmx_prometheus_javaagent.jar=7071:/opt/jmx_prometheus/kafka-config.yml -javaagent:/opt/jmx_prometheus/jolokia-agent.jar=port=7072,host=*  -Djava.security.auth.login.config=/opt/kafka/config/jaas-kafka-server.conf
+      CONFLUENT_METRICS_ENABLE: 'false'
+      KAFKA_SUPER_USERS: User:admin
+      KAFKA_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer
+      KAFKA_SSL_KEYSTORE_FILENAME: kafka.broker1.keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: broker1_keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: broker1_sslkey_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: kafka.broker1.truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: broker1_truststore_creds
+      
+      KAFKA_SSL_CLIENT_AUTH: "required"
+     
+      KAFKA_LISTENERS: CONTROLLER://:9093,PLAINTEXT://:9092,SSL://:19092
+    #KAFKA_CFG_LISTENERS=SECURED://:9093,CONTROLLER://:9094,INTERBROKER://:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_PROCESS_ROLES: controller,broker
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 10@broker-1:9093
+      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_SASL_MECHANISM: PLAIN
+      KAFKA_SASL_MECHANISM_CONTROLLER_PROTOCOL: PLAIN
+  
+  klaw-core:
+    image: aivenoy/klaw-core:latest
+    container_name: klaw-core
+    environment:
+      KLAW_CLUSTERAPI_ACCESS_BASE64_SECRET: VGhpc0lzRXhhY3RseUEzMkNoYXJTdHJpbmdTZWNyZXRHYW5lc2gK
+      SPRING_DATASOURCE_URL: "jdbc:h2:file:/klaw/klawprodb;DB_CLOSE_ON_EXIT=FALSE;DB_CLOSE_DELAY=-1;MODE=MySQL;CASE_INSENSITIVE_IDENTIFIERS=TRUE;"
+      KLAW_UIAPI_SERVERS: "http://localhost:9097"
+      DEV1_KAFKASSL_KEYSTORE_LOCATION: "/etc/kafka/secrets/kafka.broker2.keystore.jks"
+      DEV1_KAFKASSL_KEYSTORE_PWD: "confluent"
+      DEV1_KAFKASSL_KEY_PWD: "confluent"
+      DEV1_KAFKASSL_KEYSTORE_TYPE: "JKS"
+      DEV1_KAFKASSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka.broker1.truststore.jks"
+      DEV1_KAFKASSL_TRUSTSTORE_PWD: "confluent"
+      DEV1_KAFKASSL_TRUSTSTORE_TYPE: "JKS"
+      DEV1_KAFKASASL_JAASCONFIG_PLAIN: org.apache.kafka.common.security.plain.PlainLoginModule required username='admin' password='admin';
+      JAVA_SECURITY_AUTH_LOGIN_CONFIG: /etc/kafka/config/jaas-kafka-server.conf
+    volumes:
+      - "klaw_data:/klaw"
+      - ./secrets:/etc/kafka/secrets
+      - ./config:/etc/kafka/config
+    extra_hosts:
+      - "moby:127.0.0.1"
+    ports:
+     - 9097:9097
+  
+  klaw-cluster-api:
+    image: aivenoy/klaw-cluster-api:latest
+    container_name: klaw-cluster-api
+    environment:
+      KLAW_CLUSTERAPI_ACCESS_BASE64_SECRET: VGhpc0lzRXhhY3RseUEzMkNoYXJTdHJpbmdTZWNyZXRHYW5lc2gK
+      DEV1_KAFKASSL_KEYSTORE_LOCATION: "/etc/kafka/secrets/kafka.broker2.keystore.jks"
+      DEV1_KAFKASSL_KEYSTORE_PWD: "confluent"
+      DEV1_KAFKASSL_KEY_PWD: "confluent"
+      DEV1_KAFKASSL_KEYSTORE_TYPE: "JKS"
+      DEV1_KAFKASSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka.broker1.truststore.jks"
+      DEV1_KAFKASSL_TRUSTSTORE_PWD: "confluent"
+      DEV1_KAFKASSL_TRUSTSTORE_TYPE: "JKS"
+      DEV1_KAFKASASL_JAASCONFIG_PLAIN: org.apache.kafka.common.security.plain.PlainLoginModule required username='admin' password='admin';
+      JAVA_SECURITY_AUTH_LOGIN_CONFIG: /etc/kafka/config/jaas-kafka-server.conf
+    volumes:
+      - "klaw_data:/klaw"
+      - ./secrets:/etc/kafka/secrets
+      - ./config:/etc/kafka/config
+    extra_hosts:
+      - "moby:127.0.0.1"
+    ports:
+     - 9343:9343  
+ 

@@ -1,0 +1,13 @@
+keytool -genkey -keystore kafka.server.keystore.jks -validity 365 -storepass serverpassword -keypass serverpassword -dname "CN=kafka" -storetype pkcs12
+
+keytool -keystore kafka.server.keystore.jks -certreq -file csr -storepass serverpassword -keypass serverpassword
+
+openssl x509 -req -CA "./ca_authority/ca-cert" -CAkey "./ca_authority/ca-key" -in csr -out csr-signed -days 365 -CAcreateserial -passin pass:serverpassword
+
+keytool -keystore kafka.server.keystore.jks -alias CARoot -import -file "./ca_authority/ca-cert" -storepass serverpassword -keypass serverpassword -noprompt
+
+keytool -keystore kafka.server.keystore.jks -import -file csr-signed -storepass serverpassword -keypass serverpassword -noprompt
+
+keytool -keystore kafka.server.truststore.jks -alias CARoot -import -file "./ca_authority/ca-cert" -storepass serverpassword -keypass serverpassword -noprompt
+
+keytool -keystore kafka.client.truststore.jks -alias CARoot -import -file  "./ca_authority/ca-cert" -storepass clientpassword -keypass clientpassword -noprompt

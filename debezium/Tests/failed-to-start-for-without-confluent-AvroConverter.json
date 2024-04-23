@@ -1,0 +1,33 @@
+{
+"errordesc":"check for error1.txt",
+
+"name": "oee-prod-sasl25",
+    "config":
+		{
+"connector.class": "io.debezium.connector.sqlserver.SqlServerConnector",
+"driver.encrypt": "false",
+"database.user": "eam_ignitionUser",
+"database.names": "IgnitionEnterprise",
+"database.dbname":  "IgnitionEnterprise",
+"tasks.max": "1",
+"database.history.kafka.bootstrap.servers": "mfg-kaf-devl-0.sdde.deere.com:9094,mfg-kaf-devl-1.sdde.deere.com:9094,mfg-kaf-devl-2.sdde.deere.com:9094",
+"producer.bootstrap.servers": "mfg-kaf-devl-0.sdde.deere.com:9094,mfg-kaf-devl-1.sdde.deere.com:9094,mfg-kaf-devl-2.sdde.deere.com:9094",
+ "producer.security.protocol" : "SASL_PLAINTEXT",
+ "producer.sasl.jaas.config": "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"superuser\" password=\"superuserpassword\";",
+ "producer.sasl.mechanism" : "SCRAM-SHA-256",
+"database.history.kafka.topic": "schema-changes.products1",
+"database.server.name": "INST5",
+"database.port": "1434",
+"value.converter.schema.registry.url": "http://sr-devl.sdde.deere.com/",
+"topic.prefix": "server1",
+"connect.protocol": "eager",
+"database.hostname": "ignitionenterprise-dev-90-db.sde.deere.com",
+"database.password": "eamignition",
+"value.converter.schemas.enable": "true",
+
+"database.trustServerCertificate": "false",
+"table.include.list": "dbo.OEEproduction",
+"database.include.list": "IgnitionEnterprise"
+	
+}
+}

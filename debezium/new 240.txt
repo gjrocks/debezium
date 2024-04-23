@@ -1,0 +1,9 @@
+UNION BANK : 
+aCCOUNT :
+520101211742968:Int.Pd:01-10-
+
+cust id : 2018105920
+
+
+JAVA_OPTS=-Djdk.tls.client.protocols="TLSv1,TLSv1.1"
+

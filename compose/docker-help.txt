@@ -1,0 +1,36 @@
+docker run -it --rm -v "C:\kafka\compose\Kafka-ssl-zookeeper\openssl-docker:/openssl-certs" docker-openssl
+
+docker run -it --rm -v "C:\kafka\compose\Confluent-ssl-zookeeper-kafka\secrets -localhost:/openssl-certs" gradle:8-jdk17-alpine   /bin/bash
+
+
+docker run -it --rm -v "C:\Opensearch-work\opensearch-docker-compose:/openssl-certs" gradle:8-jdk17-alpine   /bin/bash
+
+apk update && apk add --no-cache openssl &&  rm -rf "/var/cache/apk/*"
+
+
+docker run -it --rm -v "C:\klaw-source\klaw:/tmp" maven:3.9.6-amazoncorretto-11-al2023 /bin/bash
+
+VGhpc0lzRXhhY3RseUEzMkNoYXJTdHJpbmdTZWNyZXQxMjMK
+
+
+set KAFKA_OPTS=-Djava.security.auth.login.config=C:\kafka_2.13-3.3.1\config\jaas-kafka-server.conf
+
+-Djava.security.auth.login.config=C:\kafka_2.13-3.3.1\newconfig\jaas-kafka-server.conf
+
+kafka-server-start.bat C:\kafka_2.13-3.3.1\config\server.properties
+
+
+{
+  "tenantModel":
+    {
+      "tenantName": "default",
+      "baseSyncEnvironment": "DEV",
+      "orderOfTopicPromotionEnvsList": ["DEV"],
+      "requestTopicsEnvironmentsList": ["DEV"],
+      "baseSyncKafkaConnectCluster" : null,
+      "orderOfConnectorsPromotionEnvsList" : [],
+      "requestConnectorsEnvironmentsList" : []
+    }
+}
+
+docker exec -it <mycontainer> bash

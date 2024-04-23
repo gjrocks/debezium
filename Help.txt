@@ -1,0 +1,35 @@
+kafka-topics.bat --create --topic quorumqueue --bootstrap-server localhost:19092,localhost:29092,localhost:39092
+
+connect-standalone.bat C:\kafka_2.13-3.3.1\config\connect-standalone.properties  C:\kafka_2.13-3.3.1\config\rabbitmq-source.properties
+
+
+connect-distributed.bat C:\kafka_2.13-3.3.1\config\connect-distributed.properties
+
+curl -s -X POST -H 'Content-Type: application/json' --data C:\kafka_2.13-3.3.1\config\rabbitmq-source.json http://localhost:8083/connectors
+
+ kafka-run-class kafka.tools.GetOffsetShell --broker-list localhost:19092,localhost:29092,localhost:39092 --topic quorumqueue
+ 
+ kafka-run-class kafka.tools.GetOffsetShell --broker-list localhost:19092 --command-config C:/kafka_2.13-3.3.1/config/admin.properties
+ --topic cityinfo
+ 
+ 
+ kafka-topics.bat --bootstrap-server localhost:19092 --list
+ 
+ 
+ kafka-topics.bat --bootstrap-server localhost:19092 --describe --topic connect-offsets
+ 
+  kafka-topics.bat --bootstrap-server localhost:9092 --describe --topic cityinfo
+ set KAFKA_JMX_OPTS="-Dcom.sun.management.jmxremote=true
+    -Dcom.sun.management.jmxremote.authenticate=false
+    -Dcom.sun.management.jmxremote.ssl=false
+    -Djava.rmi.server.hostname=<ip_address>
+    -Dcom.sun.management.jmxremote.port=<jmx_port>"
+	
+	
+	set KAFKA_OPTS: "-javaagent:C:/kafka_2.13-3.3.1/prometheous/jmx_prometheus_javaagent-0.18.0.jar=5083:C:/kafka_2.13-3.3.1/prometheous/kafka-connect.yml"
+	
+	
+	kafka-run-class kafka.tools.GetOffsetShell \
+  --broker-list host01:9092,host02:9092,host02:9092 --topic kt
+  
+  docker exec -it <mycontainer> bash
